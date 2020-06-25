@@ -11,6 +11,8 @@ import helloJPA.entitiy.Team;
 import helloJPA.entitiy.memberType;
 import lombok.*;
 
+import java.util.List;
+
 public class Main {
     public static void main(String[] args){
         EntityManagerFactory emf =
@@ -26,26 +28,45 @@ public class Main {
             team.setName("TeamA");
             em.persist(team);
 
-            Member member = new Member();
-            member.setName("memberA");
-            member.setTeamId(team.getId());
+            Member member_A = new Member();
+            member_A.setName("memberA");
+            member_A.setTeam(team);
+            em.persist(member_A);
 
-            member.setMemberType(memberType.male);
-            member.setAge(24L);
-            em.persist(member);
+            Member member_B = new Member();
+            member_B.setName("memberB");
+            member_B.setTeam(team);
+            em.persist(member_B);
 
-            ////// 조회 ( 데이터 중심 모델링 )
+            Member member_C = new Member();
+            member_C.setName("memberC");
+            member_C.setTeam(team);
 
-            Member saved = em.find(Member.class, member.getId());
-            Long savedTeamId = saved.getTeamId();
-            Team savedTeam = em.find(Team.class, savedTeamId);
-            // 즉 연관관계가 없어 하나하나 다 가져와야함.
-            // 객체지향에서 벗어남
+            em.persist(member_C);
 
+            //team.getMembers().add(member_A);  종속은 읽기만 가능하다.!
+            //team.getMembers().add(member_B);  member의 team에 영향x
+            //team.getMembers().add(member_C);  TEAM_ID : null로 들어감
 
+            em.flush(); // db에 쿼리를 다 보냄
+            em.clear(); // 캐시 비움
+            //바로 find시 team에 members가 적용이 안되어 있음
+
+            ////// member to team 조회 ( 단방향 매핑 )
+
+            Member findMember = em.find(Member.class, member_A.getId());
+            Team findTeam_= findMember.getTeam();
+
+            /////// team to members 조회 (양방향 매핑)
+
+            List<Member> members = findTeam_.getMembers();
+            for(Member m : members){
+                System.out.println(m.getName());
+            }
 
             tx.commit();
         }catch (Exception e){
+            System.out.println(e);
             tx.rollback();
         }finally{
             em.close();
