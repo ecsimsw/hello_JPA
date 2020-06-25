@@ -8,10 +8,13 @@ import javax.persistence.*;
 @Entity
 @Getter @Setter
 public class Member {
-    @Id
+    @Id @GeneratedValue
     private Long id;
-    @Column(nullable = false, insertable = false, length=20)
+
     private String name;
+
+    @Column(name= "TEAM_ID")
+    private long teamId;
 
     @Enumerated(EnumType.STRING)
     private memberType memberType;

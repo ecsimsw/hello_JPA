@@ -7,6 +7,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 
+import helloJPA.entitiy.Team;
 import helloJPA.entitiy.memberType;
 import lombok.*;
 
@@ -16,16 +17,32 @@ public class Main {
                 Persistence.createEntityManagerFactory("hello");
 
         EntityManager em = emf.createEntityManager();
-        EntityTransaction tx = em.getTransaction();// jpa의 모든 활동은 트랜젝션 안에서!
-        tx.begin(); // 트랜젝션 시작
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
 
         try{
+            ////// 저장
+            Team team = new Team();
+            team.setName("TeamA");
+            em.persist(team);
+
             Member member = new Member();
-            member.setId(1L);
             member.setName("memberA");
+            member.setTeamId(team.getId());
+
             member.setMemberType(memberType.male);
-            member.setAge(51L);
+            member.setAge(24L);
             em.persist(member);
+
+            ////// 조회 ( 데이터 중심 모델링 )
+
+            Member saved = em.find(Member.class, member.getId());
+            Long savedTeamId = saved.getTeamId();
+            Team savedTeam = em.find(Team.class, savedTeamId);
+            // 즉 연관관계가 없어 하나하나 다 가져와야함.
+            // 객체지향에서 벗어남
+
+
 
             tx.commit();
         }catch (Exception e){
@@ -35,5 +52,4 @@ public class Main {
         }
         emf.close();
     }
-
 }
