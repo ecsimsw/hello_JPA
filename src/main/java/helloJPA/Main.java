@@ -23,46 +23,51 @@ public class Main {
         tx.begin();
 
         try{
-            ////// 저장
-            Team team = new Team();
-            team.setName("TeamA");
-            em.persist(team);
+            Team teamA = new Team();
+            teamA.setName("TeamA");
+            em.persist(teamA);
 
             Member member_A = new Member();
             member_A.setName("memberA");
-            member_A.setTeam(team);
+            member_A.setTeam(teamA);
             em.persist(member_A);
+
+            em.flush();
+            em.clear();
+
+            Member findMember = em.find(Member.class, member_A.getId());
+            Team findTeam= findMember.getTeam();
+            System.out.println(findTeam.getName());
+
+
+            Team teamB = new Team();
+            teamB.setName("TeamB");
+            em.persist(teamB);
 
             Member member_B = new Member();
             member_B.setName("memberB");
-            member_B.setTeam(team);
+            member_B.setTeam(teamB);
             em.persist(member_B);
 
-            Member member_C = new Member();
-            member_C.setName("memberC");
-            member_C.setTeam(team);
+            em.flush(); // find ok
 
+            findMember = em.find(Member.class, member_B.getId());
+            findTeam= findMember.getTeam();
+            System.out.println(findTeam.getName());
+
+            Member member_C = new Member();
+            member_C.setName("memberB");
+            member_C.setTeam(teamB);
             em.persist(member_C);
 
-            //team.getMembers().add(member_A);  종속은 읽기만 가능하다.!
-            //team.getMembers().add(member_B);  member의 team에 영향x
-            //team.getMembers().add(member_C);  TEAM_ID : null로 들어감
+            member_C.setTeam(teamA);
+            // changing value after persist 
 
-            em.flush(); // db에 쿼리를 다 보냄
-            em.clear(); // 캐시 비움
-            //바로 find시 team에 members가 적용이 안되어 있음
+            em.flush();
 
-            ////// member to team 조회 ( 단방향 매핑 )
-
-            Member findMember = em.find(Member.class, member_A.getId());
-            Team findTeam_= findMember.getTeam();
-
-            /////// team to members 조회 (양방향 매핑)
-
-            List<Member> members = findTeam_.getMembers();
-            for(Member m : members){
-                System.out.println(m.getName());
-            }
+            findMember = em.find(Member.class, member_C.getId());
+            findTeam= findMember.getTeam();
+            System.out.println(findTeam.getName());
 
             tx.commit();
         }catch (Exception e){
